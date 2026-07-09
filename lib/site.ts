@@ -10,8 +10,7 @@ export const site = {
   generalEmail: "info@amsonsgroup.net",
   postal: "P.O. Box 22786, Dar es Salaam, Tanzania",
   address: "Mbagala Industrial Area, Kilwa Road, Dar es Salaam, Tanzania",
-  announcement:
-    "Built for Tanzania. Engineered for strength. Supported by Amsons Group.",
+  announcement: "Engineered for strength. Part of Amsons Group.",
   utilityBar:
     "ISO 9001:2015 Certified | Four Specialised Cement Grades | Sales: +255 788 026 188",
   instagram: "https://www.instagram.com/camel_cement/",
