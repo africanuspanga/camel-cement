@@ -25,7 +25,8 @@ import {
 import { getProduct, products } from "@/lib/products";
 import { JsonLd, productJsonLd } from "@/lib/seo";
 import { AddToCartButton } from "@/components/cart/add-to-cart";
-import { PRICE_PER_BAG_TZS, formatTzs } from "@/lib/cart/pricing";
+import { formatTzs } from "@/lib/cart/pricing";
+import { getBagPriceTzs } from "@/lib/cart/pricing-server";
 import {
   ArrowRightIcon,
   CalculatorIcon,
@@ -57,6 +58,9 @@ export async function generateMetadata({
   };
 }
 
+// Price is fetched at render; regenerate periodically so admin price edits show
+export const revalidate = 300;
+
 const tabTriggerClasses =
   "h-auto flex-none rounded-full px-5 py-2.5 text-sm font-bold text-concrete-800 data-active:bg-camel-green-700 data-active:text-white data-active:shadow-none";
 
@@ -68,6 +72,7 @@ export default async function ProductDetailPage({
   const { slug } = await params;
   const product = getProduct(slug);
   if (!product) notFound();
+  const priceTzs = await getBagPriceTzs();
 
   const compareProduct = getProduct(product.compareWith);
   const relatedProducts = products.filter((p) => p.slug !== product.slug);
@@ -193,7 +198,7 @@ export default async function ProductDetailPage({
               </dl>
               <div>
                 <p className="text-2xl font-bold tabular-nums text-concrete-950">
-                  {formatTzs(PRICE_PER_BAG_TZS)}{" "}
+                  {formatTzs(priceTzs)}{" "}
                   <span className="text-base font-semibold text-concrete-800">
                     per 50 kg bag
                   </span>
@@ -428,7 +433,7 @@ export default async function ProductDetailPage({
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {relatedProducts.map((related) => (
-              <ProductCard key={related.slug} product={related} />
+              <ProductCard key={related.slug} product={related} priceTzs={priceTzs} />
             ))}
           </div>
         </div>

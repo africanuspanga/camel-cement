@@ -10,9 +10,11 @@ import { ArrowRightIcon, CalculatorIcon } from "lucide-react";
 export function ProductCard({
   product,
   priority = false,
+  priceTzs = PRICE_PER_BAG_TZS,
 }: {
   product: Product;
   priority?: boolean;
+  priceTzs?: number;
 }) {
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-[18px] border border-concrete-200 bg-white shadow-card transition-all duration-[220ms] hover:-translate-y-[3px] hover:border-camel-green-200 hover:shadow-raised">
@@ -63,7 +65,7 @@ export function ProductCard({
           <div className="flex items-end justify-between gap-3">
             <div>
               <p className="text-xl font-extrabold tabular-nums leading-none text-concrete-950">
-                {formatTzs(PRICE_PER_BAG_TZS)}
+                {formatTzs(priceTzs)}
               </p>
               <p className="mt-1 text-xs font-medium text-concrete-600">
                 per 50 kg bag

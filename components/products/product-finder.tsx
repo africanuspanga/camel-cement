@@ -267,7 +267,7 @@ function OptionCards<T extends string>({
 
 /* ── Finder ───────────────────────────────────────────────────── */
 
-export function ProductFinder() {
+export function ProductFinder({ priceTzs }: { priceTzs?: number }) {
   const [step, setStep] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [building, setBuilding] = useState<BuildingValue | "">("");
@@ -303,6 +303,7 @@ export function ProductFinder() {
     if (product) {
       return (
         <FinderResult
+          priceTzs={priceTzs}
           product={product}
           reasons={recommendation.reasons}
           hasSpecification={specification === "yes"}
@@ -450,11 +451,13 @@ function FinderResult({
   reasons,
   hasSpecification,
   onRestart,
+  priceTzs,
 }: {
   product: Product;
   reasons: string[];
   hasSpecification: boolean;
   onRestart: () => void;
+  priceTzs?: number;
 }) {
   return (
     <div className="mx-auto max-w-5xl space-y-10">
@@ -476,7 +479,7 @@ function FinderResult({
 
       <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-14">
         <div className="mx-auto w-full max-w-sm">
-          <ProductCard product={product} priority />
+          <ProductCard product={product} priority priceTzs={priceTzs} />
         </div>
 
         <div className="space-y-8">

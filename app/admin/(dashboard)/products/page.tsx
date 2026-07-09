@@ -3,7 +3,9 @@ import Image from "next/image";
 import { Database } from "lucide-react";
 
 import { PageHeader } from "@/components/admin/page-header";
+import { PriceCard } from "@/components/admin/products/price-card";
 import { ProductActiveSwitch } from "@/components/admin/product-active-switch";
+import { getBagPriceTzs } from "@/lib/cart/pricing-server";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { products as fallbackProducts } from "@/lib/products";
@@ -34,6 +36,7 @@ interface ProductCardData {
 
 export default async function ProductsPage() {
   const supabase = await createClient();
+  const currentPrice = await getBagPriceTzs();
 
   let items: ProductCardData[] = [];
   let fromDatabase = false;
@@ -80,6 +83,8 @@ export default async function ProductsPage() {
         title="Products"
         description="The four Camel Cement grades shown on the public website. Toggle visibility without deleting anything."
       />
+
+      <PriceCard currentPrice={currentPrice} />
 
       {!fromDatabase && (
         <Alert className="border-amber-300 bg-amber-50 text-amber-900">

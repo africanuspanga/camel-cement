@@ -6,6 +6,7 @@ import Image from "next/image";
 import { HomeHero } from "@/components/home/hero";
 import { AmsonsBand } from "@/components/home/amsons-band";
 import { TestimonialsSection } from "@/components/home/testimonials";
+import { getBagPriceTzs } from "@/lib/cart/pricing-server";
 import { ProductCard } from "@/components/site/product-card";
 import { Section, SectionHeading } from "@/components/site/section";
 import { ComingSoonImage } from "@/components/site/coming-soon-image";
@@ -113,7 +114,8 @@ const projectCategories = [
   { icon: LandmarkIcon, title: "Public and Institutional Projects" },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const priceTzs = await getBagPriceTzs();
   const latestArticles = articles.slice(0, 3);
   // Gallery photography for the projects section; falls back to designed
   // placeholders until files exist in public/gallery.
@@ -148,7 +150,12 @@ export default function HomePage() {
           </div>
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {products.map((product, i) => (
-              <ProductCard key={product.slug} product={product} priority={i < 2} />
+              <ProductCard
+                key={product.slug}
+                product={product}
+                priority={i < 2}
+                priceTzs={priceTzs}
+              />
             ))}
           </div>
         </div>

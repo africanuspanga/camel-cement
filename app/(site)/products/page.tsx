@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ProductCard } from "@/components/site/product-card";
+import { getBagPriceTzs } from "@/lib/cart/pricing-server";
 import { Section, SectionHeading, Eyebrow } from "@/components/site/section";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +31,8 @@ export const metadata: Metadata = {
 const stickyCellClasses =
   "sticky left-0 z-10 w-44 min-w-44 bg-white whitespace-normal align-top";
 
-export default function ProductsPage() {
+export default async function ProductsPage() {
+  const priceTzs = await getBagPriceTzs();
   return (
     <>
       {/* Hero */}
@@ -81,6 +83,7 @@ export default function ProductsPage() {
                 key={product.slug}
                 product={product}
                 priority={i < 2}
+                priceTzs={priceTzs}
               />
             ))}
           </div>
