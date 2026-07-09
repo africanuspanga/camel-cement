@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AddToCartButton } from "@/components/cart/add-to-cart";
+import { PRICE_PER_BAG_TZS, formatTzs } from "@/lib/cart/pricing";
 import type { Product } from "@/lib/products";
 import { ArrowRightIcon, CalculatorIcon } from "lucide-react";
 
@@ -58,30 +59,41 @@ export function ProductCard({
           <span className="font-semibold text-concrete-800">Best for:</span>{" "}
           {product.bestFor}
         </p>
-        <div className="relative z-10 mt-auto flex flex-wrap gap-2 pt-3">
-          <AddToCartButton slug={product.slug} size="sm" />
-          <Button
-            asChild
-            size="sm"
-            variant="outline"
-            className="rounded-full border-camel-green-700 font-bold text-camel-green-700 hover:bg-camel-green-50 hover:text-camel-green-800"
-          >
-            <Link href={`/products/${product.slug}`}>
-              View Details
-              <ArrowRightIcon aria-hidden="true" />
-            </Link>
-          </Button>
-          <Button
-            asChild
-            size="sm"
-            variant="ghost"
-            className="rounded-full font-bold text-concrete-800"
-          >
-            <Link href={`/calculator?product=${product.slug}`}>
-              <CalculatorIcon aria-hidden="true" />
+        <div className="relative z-10 mt-auto space-y-3.5 border-t border-concrete-100 pt-4">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xl font-extrabold tabular-nums leading-none text-concrete-950">
+                {formatTzs(PRICE_PER_BAG_TZS)}
+              </p>
+              <p className="mt-1 text-xs font-medium text-concrete-600">
+                per 50 kg bag
+              </p>
+            </div>
+            <Link
+              href={`/calculator?product=${product.slug}`}
+              className="inline-flex min-h-11 items-center gap-1.5 text-sm font-bold text-camel-green-700 transition-colors hover:text-camel-green-800"
+            >
+              <CalculatorIcon className="size-4" aria-hidden="true" />
               Calculate
             </Link>
-          </Button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <AddToCartButton
+              slug={product.slug}
+              size="sm"
+              className="h-11 w-full"
+            />
+            <Button
+              asChild
+              variant="outline"
+              className="h-11 w-full rounded-full border-camel-green-700 font-bold text-camel-green-700 hover:bg-camel-green-50 hover:text-camel-green-800"
+            >
+              <Link href={`/products/${product.slug}`}>
+                View Details
+                <ArrowRightIcon aria-hidden="true" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
     </article>

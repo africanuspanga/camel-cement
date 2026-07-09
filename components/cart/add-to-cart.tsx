@@ -27,7 +27,7 @@ export function AddToCartButton({
     const product = getProduct(slug);
     toast.success("Added to cart", {
       description: product
-        ? `Camel Cement ${product.grade} ${product.friendlyName} — 1 × 50 kg bag`
+        ? `Camel Cement ${product.grade} ${product.friendlyName} · 1 × 50 kg bag`
         : "1 × 50 kg bag added to your order.",
     });
   };
