@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { CircleAlert, TriangleAlert } from "lucide-react";
+import { CircleAlert, Eye, EyeOff, TriangleAlert } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ export function LoginForm() {
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [pending, setPending] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const configured = isSupabaseConfigured();
 
@@ -93,16 +94,31 @@ export function LoginForm() {
           <Label htmlFor="admin-password" className="text-sm font-semibold">
             Password
           </Label>
-          <Input
-            id="admin-password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="••••••••••"
-            className="h-13 rounded-xl border-concrete-300 px-4 text-[15px] focus-visible:border-camel-green-700 focus-visible:ring-camel-green-700/25 focus-visible:ring-[3px]"
-          />
+          <div className="relative">
+            <Input
+              id="admin-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="••••••••••"
+              className="h-13 rounded-xl border-concrete-300 px-4 pr-12 text-[15px] focus-visible:border-camel-green-700 focus-visible:ring-camel-green-700/25 focus-visible:ring-[3px]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((visible) => !visible)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-xl text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-camel-green-700"
+            >
+              {showPassword ? (
+                <EyeOff className="size-4.5" aria-hidden />
+              ) : (
+                <Eye className="size-4.5" aria-hidden />
+              )}
+            </button>
+          </div>
         </div>
         <Button
           type="submit"
