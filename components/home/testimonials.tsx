@@ -45,13 +45,6 @@ function Stars({
   );
 }
 
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "CC";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   const meta = [testimonial.role, testimonial.company]
     .filter(Boolean)
@@ -81,12 +74,6 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
       </blockquote>
 
       <figcaption className="mt-6 flex items-center gap-3 border-t border-concrete-100 pt-5">
-        <span
-          aria-hidden="true"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-camel-green-50 text-sm font-bold text-camel-green-800"
-        >
-          {initialsOf(testimonial.name)}
-        </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-concrete-950">
             {testimonial.name}

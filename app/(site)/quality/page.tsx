@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { Section, SectionHeading, Eyebrow } from "@/components/site/section";
+import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRightIcon,
@@ -84,7 +85,26 @@ const downloads = [
   "Quality policy documents",
 ];
 
-export default function QualityPage() {
+async function getQualityDocuments() {
+  const supabase = await createClient();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("resources")
+    .select("id, title, category, file_type, file_size_kb")
+    .eq("public", true)
+    .in("category", [
+      "Certificates",
+      "Technical datasheets",
+      "Safety and handling",
+      "Company documents",
+    ])
+    .order("created_at", { ascending: false })
+    .limit(8);
+  return data ?? [];
+}
+
+export default async function QualityPage() {
+  const documents = await getQualityDocuments();
   return (
     <>
       {/* Hero */}
@@ -182,26 +202,55 @@ export default function QualityPage() {
             body="Approved certificates, datasheets and quality documents are published in the resource library as they become available."
           />
           <ul className="divide-y divide-concrete-200 rounded-[18px] border border-concrete-200 bg-white shadow-[0_1px_2px_rgba(20,31,23,0.05)]">
-            {downloads.map((item) => (
-              <li key={item}>
-                <Link
-                  href="/resources"
-                  className="group flex items-center justify-between gap-4 p-5 transition-colors hover:bg-camel-green-50"
-                >
-                  <span className="flex items-center gap-3 font-medium text-concrete-950">
-                    <FileTextIcon
-                      className="size-5 text-camel-green-700"
-                      aria-hidden="true"
-                    />
-                    {item}
-                  </span>
-                  <ArrowRightIcon
-                    className="size-4 text-concrete-400 transition-transform duration-150 group-hover:translate-x-1 group-hover:text-camel-green-700"
-                    aria-hidden="true"
-                  />
-                </Link>
-              </li>
-            ))}
+            {documents.length > 0
+              ? documents.map((doc) => (
+                  <li key={doc.id}>
+                    <a
+                      href={`/api/resources/${doc.id}/download`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center justify-between gap-4 p-5 transition-colors hover:bg-camel-green-50"
+                    >
+                      <span className="flex min-w-0 items-center gap-3 font-medium text-concrete-950">
+                        <FileTextIcon
+                          className="size-5 shrink-0 text-camel-green-700"
+                          aria-hidden="true"
+                        />
+                        <span className="min-w-0">
+                          <span className="block truncate">{doc.title}</span>
+                          <span className="block text-xs font-normal text-concrete-600">
+                            {doc.category}
+                            {doc.file_type ? ` · ${doc.file_type}` : ""}
+                          </span>
+                        </span>
+                      </span>
+                      <ArrowRightIcon
+                        className="size-4 shrink-0 text-concrete-400 transition-transform duration-150 group-hover:translate-x-1 group-hover:text-camel-green-700"
+                        aria-hidden="true"
+                      />
+                    </a>
+                  </li>
+                ))
+              : downloads.map((item) => (
+                  <li key={item}>
+                    <Link
+                      href="/resources"
+                      className="group flex items-center justify-between gap-4 p-5 transition-colors hover:bg-camel-green-50"
+                    >
+                      <span className="flex items-center gap-3 font-medium text-concrete-950">
+                        <FileTextIcon
+                          className="size-5 text-camel-green-700"
+                          aria-hidden="true"
+                        />
+                        {item}
+                      </span>
+                      <ArrowRightIcon
+                        className="size-4 text-concrete-400 transition-transform duration-150 group-hover:translate-x-1 group-hover:text-camel-green-700"
+                        aria-hidden="true"
+                      />
+                    </Link>
+                  </li>
+                ))}
           </ul>
         </div>
       </Section>

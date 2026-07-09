@@ -34,7 +34,7 @@ const footerColumns = [
       { label: "Privacy Policy", href: "/privacy" },
       { label: "Terms of Use", href: "/terms" },
       { label: "Cookie Preferences", href: "/privacy#cookies" },
-      { label: "Amsons Group", href: "https://amsonsgroup.com" },
+      { label: "Amsons Group", href: "https://amsonsgroup.net" },
     ],
   },
 ];

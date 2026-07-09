@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { CAMEL_SYSTEM_PROMPT } from "@/lib/ai/system-prompt";
+import { buildSystemPrompt } from "@/lib/ai/system-prompt";
 import { site } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
 
   const baseUrl = process.env.MOONSHOT_BASE_URL ?? "https://api.moonshot.ai/v1";
   const model = process.env.MOONSHOT_MODEL ?? "kimi-k2.6";
+  const systemPrompt = await buildSystemPrompt();
 
   const upstream = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest) {
       max_tokens: 2048,
       thinking: { type: "disabled" },
       messages: [
-        { role: "system", content: CAMEL_SYSTEM_PROMPT },
+        { role: "system", content: systemPrompt },
         ...parsed.data.messages,
       ],
     }),

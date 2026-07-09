@@ -306,7 +306,10 @@ export function Calculator() {
       </div>
 
       {/* Right: live estimate (sticky on desktop, stacked on mobile) */}
-      <div className="space-y-4 lg:sticky lg:top-24">
+      <div
+        id="calc-result"
+        className="scroll-mt-32 space-y-4 lg:sticky lg:top-24"
+      >
         <ResultCard
           config={config}
           result={result}
@@ -318,6 +321,37 @@ export function Calculator() {
           {CALCULATOR_DISCLAIMER}
         </p>
       </div>
+
+      {/* Mobile: sticky live result bar so the estimate is never missed */}
+      {result ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-camel-green-800 bg-camel-green-900 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-raised lg:hidden print:hidden">
+          {/* pr keeps the bar clear of the floating chat camel */}
+          <div className="mx-auto flex max-w-lg items-center justify-between gap-3 pr-20 sm:pr-24">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/60">
+                Estimated requirement
+              </p>
+              <p className="text-xl font-extrabold tabular-nums leading-tight text-camel-yellow-500">
+                {result.cementBags.toLocaleString("en-US")} bags
+                <span className="ml-2 text-xs font-semibold text-white/76">
+                  of 50 kg
+                </span>
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                document
+                  .getElementById("calc-result")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
+              }
+              className="h-11 shrink-0 rounded-full bg-white px-5 text-sm font-bold text-camel-green-800 transition-colors hover:bg-concrete-100"
+            >
+              View estimate
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

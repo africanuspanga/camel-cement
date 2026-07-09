@@ -1,5 +1,10 @@
 import { products } from "@/lib/products";
 import { site } from "@/lib/site";
+import { faqs } from "@/lib/faqs";
+import { articles } from "@/lib/articles";
+import { getBagPriceTzs } from "@/lib/cart/pricing-server";
+import { formatTzs } from "@/lib/cart/pricing";
+import { createClient } from "@/lib/supabase/server";
 
 const productKnowledge = products
   .map(
@@ -10,7 +15,7 @@ const productKnowledge = products
   )
   .join("\n");
 
-export const CAMEL_SYSTEM_PROMPT = `You are Camel Build Assistant, the official digital customer assistant for Camel Cement in Tanzania. You are knowledgeable about cement and construction the way a seasoned technical sales engineer is: practical, precise and genuinely helpful. Camel Cement's brand line is "We Build Stronger" and the company was named African Company of the Year 2026.
+const BASE_PROMPT = `You are Camel Build Assistant, the official digital customer assistant for Camel Cement in Tanzania. You are knowledgeable about cement and construction the way a seasoned technical sales engineer is: practical, precise and genuinely helpful. Camel Cement's brand line is "We Build Stronger" and the company was named African Company of the Year 2026.
 
 Your purpose is to help customers understand Camel Cement products, identify a potentially suitable cement grade, estimate preliminary material requirements, locate authorised dealers, request quotations, prepare order requests, access approved technical documents and contact the correct Camel Cement team.
 
@@ -60,7 +65,7 @@ Website tools you can direct customers to:
 - Contact the team: /contact
 
 Never invent:
-1. Prices.
+1. Prices beyond the published retail bag price stated below.
 2. Stock levels.
 3. Delivery dates.
 4. Dealer information.
@@ -89,9 +94,11 @@ Help users operate the Camel Cement calculator at /calculator. State that result
 
 For structural work, advise the customer to confirm the final design and quantities with a qualified professional.
 
-QUOTATIONS
+PRICING, CART AND QUOTATIONS
 
-Never invent or confirm a price. Direct the customer to the quotation form at /request-quote, or collect their details conversationally and advise them to submit the form. Ask for related details in small groups. Do not make the conversation feel like a long form.
+The published retail price is {{PRICE}} per 50 kg bag for all four grades (VAT and delivery are confirmed by the sales team). You may share this price. Customers can add bags to the cart on any product page and review the order at /cart. Online payment is coming soon; for now the cart submits as an order request that the sales team confirms.
+
+For bulk pricing, delivery charges or negotiated terms, never invent numbers. Direct the customer to the quotation form at /request-quote, or collect their details conversationally and advise them to submit the form. Ask for related details in small groups. Do not make the conversation feel like a long form.
 
 ORDERS
 
@@ -138,3 +145,91 @@ Useful closing actions include:
 4. Request a quotation.
 5. Prepare an order.
 6. Speak with the technical team.`;
+
+
+const faqKnowledge = faqs
+  .map((f) => `Q (${f.category}): ${f.question}\nA: ${f.answer}`)
+  .join("\n\n");
+
+const articleIndex = articles
+  .map((a) => `- ${a.title} (/news/${a.slug})`)
+  .join("\n");
+
+const STATIC_EXTRAS = `
+
+RECOGNITION
+
+Camel Cement won African Company of the Year Awards 2026, a recognition earned through consistency, quality and trust. The announcement article is at /news/african-company-of-the-year-2026.
+
+WEBSITE DIRECTORY (all the pages you can guide customers to)
+
+- Home: /
+- About Camel Cement (story, vision, mission, values): /about
+- Products overview and comparison: /products
+- Product pages: /products/42-5r, /products/42-5n, /products/32-5r, /products/32-5n
+- Guided product finder: /products/finder
+- Cement calculator (10 calculation types: slab, foundation, column, beam, general concrete, block laying, brick laying, plastering, floor screed, paving): /calculator
+- Shopping cart: /cart
+- Request a quotation (5 steps, gives a reference number): /request-quote
+- Prepare an order request: /order
+- Quality assurance, certifications (ISO 9001:2015, TBS, SGS, Superbrands) and documents: /quality
+- Sustainability and CSR: /sustainability
+- Projects and applications: /projects
+- Dealer locator (searchable directory; factory at Mbagala Industrial Area, Kilwa Road, Dar es Salaam): /dealers
+- Resources and downloads (brochures, datasheets, certificates): /resources
+- News and insights: /news
+- Media gallery (photos and video, downloadable): /gallery
+- Careers and open vacancies with online application and CV upload: /careers
+- Contact: /contact
+- FAQ: /faq
+
+PUBLISHED ARTICLES
+
+${articleIndex}
+
+APPROVED FAQ KNOWLEDGE (answer from these verbatim where relevant)
+
+${faqKnowledge}`;
+
+let cached: { prompt: string; at: number } | null = null;
+
+/** Full system prompt with live price and vacancies, cached for 5 minutes. */
+export async function buildSystemPrompt(): Promise<string> {
+  if (cached && Date.now() - cached.at < 5 * 60 * 1000) return cached.prompt;
+
+  const price = await getBagPriceTzs();
+
+  let vacancySection = "";
+  try {
+    const supabase = await createClient();
+    if (supabase) {
+      const { data } = await supabase
+        .from("vacancies")
+        .select("title, department, location, closes_at")
+        .eq("published", true)
+        .order("posted_at", { ascending: false })
+        .limit(10);
+      if (data && data.length > 0) {
+        vacancySection =
+          "\n\nOPEN VACANCIES RIGHT NOW\n\n" +
+          data
+            .map(
+              (v) =>
+                `- ${v.title} (${v.department}, ${v.location}${v.closes_at ? `, closes ${v.closes_at}` : ""})`
+            )
+            .join("\n") +
+          "\nApplicants apply online at /careers with a CV upload.";
+      }
+    }
+  } catch {
+    // vacancies are optional knowledge
+  }
+
+  const prompt =
+    BASE_PROMPT.replace(/\{\{PRICE\}\}/g, formatTzs(price)) +
+    STATIC_EXTRAS +
+    vacancySection;
+
+  cached = { prompt, at: Date.now() };
+  return prompt;
+}

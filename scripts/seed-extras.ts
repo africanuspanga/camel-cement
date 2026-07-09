@@ -81,7 +81,7 @@ const galleryItems = [
   { title: "Camel Cement 42.5N", kind: "image", src: "/products/42-5n.png", category: "Products", display_order: 9 },
   { title: "Camel Cement 32.5R", kind: "image", src: "/products/32-5r.png", category: "Products", display_order: 10 },
   { title: "Camel Cement 32.5N", kind: "image", src: "/products/32-5n.png", category: "Products", display_order: 11 },
-  { title: "Camel Cement brand film", kind: "video", src: "/videos/hero-background.mp4", category: "Brand", display_order: 12 },
+  { title: "Camel Cement brand film", kind: "video", src: "/videos/hero-background.mp4", poster: "/gallery/gallery-2.jpg", category: "Brand", display_order: 12 },
 ];
 
 const inThirtyDays = new Date(Date.now() + 30 * 24 * 3600 * 1000)

@@ -119,28 +119,68 @@ export function SiteHeader() {
                           />
                         ) : null}
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-52">
-                        <DropdownMenuItem asChild>
-                          <Link href="/news" className="gap-2.5 font-semibold">
-                            <NewspaperIcon
-                              className="size-4 text-camel-green-700"
-                              aria-hidden="true"
-                            />
-                            News and Insights
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href="/gallery"
-                            className="gap-2.5 font-semibold"
+                      <DropdownMenuContent
+                        align="start"
+                        sideOffset={14}
+                        className="w-[340px] rounded-2xl border-concrete-200 p-2 shadow-raised"
+                      >
+                        {[
+                          {
+                            href: "/news",
+                            icon: NewspaperIcon,
+                            title: "News and Insights",
+                            description:
+                              "Company updates, awards and practical construction guidance.",
+                          },
+                          {
+                            href: "/gallery",
+                            icon: ImagesIcon,
+                            title: "Media Gallery",
+                            description:
+                              "Photos and video from our projects, factory and products.",
+                          },
+                        ].map((item) => (
+                          <DropdownMenuItem
+                            key={item.href}
+                            asChild
+                            className="rounded-xl p-2.5 focus:bg-camel-green-50"
                           >
-                            <ImagesIcon
-                              className="size-4 text-camel-green-700"
+                            <Link href={item.href} className="flex items-start gap-3.5">
+                              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-camel-green-50 text-camel-green-700">
+                                <item.icon
+                                  className="size-5"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block text-[15px] font-bold text-concrete-950">
+                                  {item.title}
+                                </span>
+                                <span className="mt-0.5 block text-[13px] leading-snug text-concrete-600">
+                                  {item.description}
+                                </span>
+                              </span>
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                        <div className="mt-1.5 border-t border-concrete-100 px-2.5 py-2.5">
+                          <Link
+                            href="/news/african-company-of-the-year-2026"
+                            className="group/award flex items-center gap-2 text-[13px] font-semibold text-camel-green-700 hover:text-camel-green-800"
+                          >
+                            <span
                               aria-hidden="true"
+                              className="size-1.5 rounded-full bg-camel-yellow-500"
                             />
-                            Media Gallery
+                            African Company of the Year 2026
+                            <span
+                              aria-hidden="true"
+                              className="transition-transform duration-150 group-hover/award:translate-x-0.5"
+                            >
+                              →
+                            </span>
                           </Link>
-                        </DropdownMenuItem>
+                        </div>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   );
