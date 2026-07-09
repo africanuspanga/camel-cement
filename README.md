@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Camel Cement Digital Platform
 
-## Getting Started
+Corporate website, customer tools, Camel Build Assistant (AI) and administration
+dashboard for **Camel Cement (T) Limited**, a member of Amsons Group.
 
-First, run the development server:
+**We Build Stronger.**
+
+## Stack
+
+- **Frontend:** Next.js 16.2 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, Motion
+- **Backend:** Supabase (Postgres, Auth, Storage, RLS)
+- **AI assistant:** Moonshot `kimi-k2.6` (OpenAI-compatible API), streaming
+- **Design system:** `docs/camel-cement-design.md` (source of truth)
+- **Build brief:** `docs/camel-cement-master-build-prompt.md`
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # then fill in credentials
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+See `.env.example`. Required for full functionality:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase project |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only, used by API routes + seeds |
+| `MOONSHOT_API_KEY` | Camel Build Assistant |
+| `ADMIN_EMAIL` / `ADMIN_SEED_PASSWORD` | Admin account seeding |
 
-## Learn More
+The site runs gracefully in demo mode when Supabase/Moonshot are not
+configured (forms return local references, assistant shows offline guidance).
 
-To learn more about Next.js, take a look at the following resources:
+### Database setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+supabase link --project-ref <ref>
+npm run db:push                                        # apply migrations
+npx dotenv -e .env.local -- npm run seed:admin         # create admin user
+npx dotenv -e .env.local -- npm run seed:content       # products, articles, FAQs
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Admin dashboard
 
-## Deploy on Vercel
+Sign in at `/admin/login` with the seeded admin account (`ADMIN_EMAIL`).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/(site)/        Public website (home, products, calculator, news, ...)
+app/admin/         Administration dashboard (Supabase Auth protected)
+app/api/           Validated API routes (quotes, orders, contact, chat, ...)
+components/site/   Brand layout primitives (Section, ProductCard, ...)
+components/ui/     shadcn/ui components
+lib/               Products, articles, FAQs, calculators, Supabase clients
+supabase/          Migrations (schema + RLS + storage buckets)
+scripts/           seed-admin.ts, seed-content.ts
+docs/              Design system + master build brief
+public/            Brand assets (logos, product bags, hero video)
+```
+
+## Commands
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Development server |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript check |
+
+## Notes
+
+- Missing photography renders as designed "coming soon" skeletons; drop real
+  images into `public/` and swap the `ComingSoonImage` usages.
+- Privacy and Terms pages are structured for legal review before launch.
+- Do not commit `.env.local`.
