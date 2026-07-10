@@ -186,6 +186,28 @@ export function Calculator() {
     [config, rawInputs, options, result, productName]
   );
 
+  // Label/value pairs of the current inputs and mix settings, used by the
+  // branded PDF download in the result card.
+  const details = useMemo(() => {
+    const rows: { label: string; value: string }[] = [];
+    for (const field of config.fields) {
+      rows.push({
+        label: field.label,
+        value: `${rawInputs[field.key]} ${field.unit}`,
+      });
+    }
+    for (const select of config.selects) {
+      const choice = select.choices.find(
+        (c) => c.value === options[select.key]
+      );
+      rows.push({
+        label: select.label,
+        value: choice?.label ?? options[select.key],
+      });
+    }
+    return rows;
+  }, [config, rawInputs, options]);
+
   // Debounced fire-and-forget analytics persist. Failures are ignored.
   useEffect(() => {
     if (!result || !parsedInputs) return;
@@ -315,6 +337,7 @@ export function Calculator() {
           result={result}
           recommendation={recommendation}
           summary={summary}
+          details={details}
         />
         <p className="rounded-2xl border border-concrete-200 bg-white p-4 text-sm leading-relaxed text-concrete-800">
           <strong className="font-bold text-concrete-950">Important:</strong>{" "}

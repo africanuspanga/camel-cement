@@ -1,18 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowRightIcon,
   CalculatorIcon,
+  FileDownIcon,
+  LoaderCircleIcon,
   MailIcon,
   MessageCircleIcon,
-  PrinterIcon,
 } from "lucide-react";
 import { getProduct } from "@/lib/products";
-import type {
-  CalculationResult,
-  CalculatorConfig,
-  ProductRecommendation,
+import {
+  CALCULATOR_DISCLAIMER,
+  type CalculationResult,
+  type CalculatorConfig,
+  type ProductRecommendation,
 } from "@/lib/calculators";
 
 const numberFormat = new Intl.NumberFormat("en-US", {
@@ -33,25 +36,99 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 const secondaryAction =
-  "flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/25 text-sm font-bold text-white transition-colors hover:bg-white/10";
+  "flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/25 text-sm font-bold text-white transition-colors hover:bg-white/10 disabled:cursor-wait disabled:opacity-60";
 
 export function ResultCard({
   config,
   result,
   recommendation,
   summary,
+  details,
 }: {
   config: CalculatorConfig;
   result: CalculationResult | null;
   recommendation: ProductRecommendation;
   summary: string;
+  details: { label: string; value: string }[];
 }) {
+  const [downloading, setDownloading] = useState(false);
   const product = getProduct(recommendation.slug);
   const isMasonry = result?.areaM2 !== undefined;
   const areaLabel =
     config.type === "block-laying" || config.type === "brick-laying"
       ? "Wall area"
       : "Area";
+
+  async function handleDownloadPdf() {
+    if (!result || downloading) return;
+    setDownloading(true);
+    try {
+      // Lazy import keeps @react-pdf/renderer out of the page bundle.
+      const { downloadEstimatePdf } = await import(
+        "@/components/calculator/estimate-pdf"
+      );
+
+      const now = new Date();
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const reference = `CC-${String(now.getFullYear()).slice(2)}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+
+      const rows: { label: string; value: string }[] = [
+        { label: "Cement", value: `${formatNumber(result.cementKg)} kg` },
+        {
+          label: "Cement bags (50 kg)",
+          value: `${formatNumber(result.cementBags)} bags`,
+        },
+        { label: "Sand", value: `${formatNumber(result.sandM3)} m³` },
+      ];
+      if (result.aggregateM3 !== undefined) {
+        rows.push({
+          label: "Aggregate",
+          value: `${formatNumber(result.aggregateM3)} m³`,
+        });
+      }
+      if (isMasonry && result.areaM2 !== undefined) {
+        rows.push({
+          label: areaLabel,
+          value: `${formatNumber(result.areaM2)} m²`,
+        });
+      }
+      if (result.wetVolumeM3 !== undefined) {
+        rows.push({
+          label: isMasonry ? "Mortar volume (wet)" : "Concrete volume (wet)",
+          value: `${formatNumber(result.wetVolumeM3)} m³`,
+        });
+      }
+      rows.push({
+        label: "Wastage allowance",
+        value: `${result.wastagePercent}%`,
+      });
+
+      await downloadEstimatePdf({
+        title: config.label,
+        reference,
+        dateLabel: now.toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }),
+        details,
+        rows,
+        bags: result.cementBags,
+        productName: product
+          ? `Camel Cement ${product.grade} (${product.friendlyName})`
+          : null,
+        productReason: recommendation.reason,
+        assumptions: result.assumptions,
+        disclaimer: CALCULATOR_DISCLAIMER,
+        logoSrc: `${window.location.origin}/logo-pdf.png`,
+      });
+    } catch {
+      // If PDF generation fails for any reason, fall back to printing.
+      window.print();
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   if (!result) {
     return (
@@ -178,11 +255,19 @@ export function ResultCard({
         </Link>
         <button
           type="button"
-          onClick={() => window.print()}
+          onClick={handleDownloadPdf}
+          disabled={downloading}
           className={secondaryAction}
         >
-          <PrinterIcon aria-hidden="true" className="size-4" />
-          Save as PDF
+          {downloading ? (
+            <LoaderCircleIcon
+              aria-hidden="true"
+              className="size-4 animate-spin"
+            />
+          ) : (
+            <FileDownIcon aria-hidden="true" className="size-4" />
+          )}
+          {downloading ? "Preparing PDF…" : "Download PDF"}
         </button>
         <a
           href={`https://wa.me/?text=${encodedSummary}`}
