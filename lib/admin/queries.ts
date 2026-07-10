@@ -36,12 +36,44 @@ export async function countSince(
   supabase: ServerSupabase,
   table: string,
   since?: string,
-  filter?: { column: string; value: string }
+  filter?: { column: string; value: string },
+  until?: string
 ): Promise<number> {
   let query = supabase.from(table).select("id", { count: "exact", head: true });
   if (since) query = query.gte("created_at", since);
+  if (until) query = query.lt("created_at", until);
   if (filter) query = query.eq(filter.column, filter.value);
   const { count, error } = await query;
   if (error) return 0;
   return count ?? 0;
+}
+
+/**
+ * Current count plus the count for the preceding period of equal length,
+ * formatted as a KPI delta ("+12%", "−8%", "New") with a trend direction.
+ */
+export async function countWithTrend(
+  supabase: ServerSupabase,
+  table: string,
+  days: number
+): Promise<{ value: number; delta: string; trend: "up" | "down" | "flat" }> {
+  const since = sinceIso(days);
+  const previousSince = sinceIso(days * 2);
+  const [value, previous] = await Promise.all([
+    countSince(supabase, table, since),
+    countSince(supabase, table, previousSince, undefined, since),
+  ]);
+
+  if (previous === 0) {
+    return value === 0
+      ? { value, delta: "—", trend: "flat" }
+      : { value, delta: "New", trend: "up" };
+  }
+  const percent = Math.round(((value - previous) / previous) * 100);
+  if (percent === 0) return { value, delta: "±0%", trend: "flat" };
+  return {
+    value,
+    delta: `${percent > 0 ? "+" : "−"}${Math.abs(percent)}%`,
+    trend: percent > 0 ? "up" : "down",
+  };
 }

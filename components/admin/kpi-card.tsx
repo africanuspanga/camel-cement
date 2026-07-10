@@ -1,17 +1,37 @@
-import type { LucideIcon } from "lucide-react";
+import {
+  MinusIcon,
+  TrendingDownIcon,
+  TrendingUpIcon,
+  type LucideIcon,
+} from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { formatNumber } from "@/lib/admin/format";
 import { cn } from "@/lib/utils";
 
+export type KpiTrend = "up" | "down" | "flat";
+
+const trendStyles: Record<KpiTrend, string> = {
+  up: "bg-camel-green-50 text-camel-green-800",
+  down: "bg-camel-yellow-50 text-camel-yellow-700",
+  flat: "bg-concrete-100 text-concrete-600",
+};
+
+const trendIcons: Record<KpiTrend, LucideIcon> = {
+  up: TrendingUpIcon,
+  down: TrendingDownIcon,
+  flat: MinusIcon,
+};
+
 /**
- * Dashboard KPI card: label, large tabular value, delta line, icon chip.
+ * Dashboard KPI card: label, large tabular value, trend pill, icon chip.
  * Deltas render "—" until comparison data exists — never fake trends.
  */
 export function KpiCard({
   label,
   value,
   delta,
+  trend = "flat",
   hint,
   icon: Icon,
   compact = false,
@@ -19,14 +39,17 @@ export function KpiCard({
   label: string;
   value: number;
   delta?: string;
+  trend?: KpiTrend;
   hint?: string;
   icon: LucideIcon;
   compact?: boolean;
 }) {
+  const TrendIcon = trendIcons[trend];
+
   return (
     <Card
       className={cn(
-        "gap-0 rounded-2xl border-concrete-200 bg-white p-5 shadow-none",
+        "gap-0 rounded-2xl border-concrete-200 bg-white p-5 shadow-none transition-shadow hover:shadow-card",
         compact && "p-4"
       )}
     >
@@ -52,12 +75,18 @@ export function KpiCard({
         </div>
       </div>
       {!compact && (
-        <p className="mt-3 text-xs text-muted-foreground">
-          <span className="font-semibold text-concrete-600 tabular-nums">
+        <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold tabular-nums",
+              trendStyles[delta ? trend : "flat"]
+            )}
+          >
+            <TrendIcon className="size-3" aria-hidden />
             {delta ?? "—"}
-          </span>{" "}
+          </span>
           {hint ?? "vs previous period"}
-        </p>
+        </div>
       )}
     </Card>
   );

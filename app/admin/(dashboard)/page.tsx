@@ -33,7 +33,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { humaniseStatus, relativeTime } from "@/lib/admin/format";
-import { countSince, sinceIso, type ServerSupabase } from "@/lib/admin/queries";
+import {
+  countSince,
+  countWithTrend,
+  sinceIso,
+  type ServerSupabase,
+} from "@/lib/admin/queries";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -124,10 +129,10 @@ async function loadDashboard(supabase: ServerSupabase, days: number) {
   const since = sinceIso(days);
 
   const [
-    quoteCount,
-    orderCount,
-    enquiryCount,
-    calculatorCount,
+    quoteTrend,
+    orderTrend,
+    enquiryTrend,
+    calculatorTrend,
     applicationCount,
     chatCount,
     subscriberCount,
@@ -140,10 +145,10 @@ async function loadDashboard(supabase: ServerSupabase, days: number) {
     submittedOrdersRes,
     recentEnquiriesRes,
   ] = await Promise.all([
-    countSince(supabase, "quote_requests", since),
-    countSince(supabase, "orders", since),
-    countSince(supabase, "contact_enquiries", since),
-    countSince(supabase, "calculator_sessions", since),
+    countWithTrend(supabase, "quote_requests", days),
+    countWithTrend(supabase, "orders", days),
+    countWithTrend(supabase, "contact_enquiries", days),
+    countWithTrend(supabase, "calculator_sessions", days),
     countSince(supabase, "job_applications", since),
     countSince(supabase, "chat_sessions", since),
     countSince(supabase, "newsletter_subscribers"),
@@ -248,11 +253,13 @@ async function loadDashboard(supabase: ServerSupabase, days: number) {
   );
 
   return {
+    trends: {
+      quotes: quoteTrend,
+      orders: orderTrend,
+      enquiries: enquiryTrend,
+      calculators: calculatorTrend,
+    },
     counts: {
-      quotes: quoteCount,
-      orders: orderCount,
-      enquiries: enquiryCount,
-      calculators: calculatorCount,
       applications: applicationCount,
       chats: chatCount,
       subscribers: subscriberCount,
@@ -267,12 +274,20 @@ async function loadDashboard(supabase: ServerSupabase, days: number) {
   };
 }
 
+const EMPTY_TREND = {
+  value: 0,
+  delta: "—",
+  trend: "flat" as const,
+};
+
 const EMPTY_DASHBOARD = (days: number) => ({
+  trends: {
+    quotes: EMPTY_TREND,
+    orders: EMPTY_TREND,
+    enquiries: EMPTY_TREND,
+    calculators: EMPTY_TREND,
+  },
   counts: {
-    quotes: 0,
-    orders: 0,
-    enquiries: 0,
-    calculators: 0,
     applications: 0,
     chats: 0,
     subscribers: 0,
@@ -297,15 +312,40 @@ export default async function AdminOverviewPage({
   const days = params.range === "7" ? 7 : params.range === "90" ? 90 : 30;
 
   const supabase = await createClient();
+
+  let firstName = "";
+  if (supabase) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      firstName = (profile?.full_name ?? "").trim().split(/\s+/)[0] ?? "";
+    }
+  }
+
   const data = supabase
     ? await loadDashboard(supabase, days)
     : EMPTY_DASHBOARD(days);
 
+  const todayLabel = new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
+
+  const trendHint = `vs previous ${days} days`;
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Overview"
-        description={`What is happening across the Camel Cement platform in the last ${days} days.`}
+        title={firstName ? `Welcome back, ${firstName}` : "Overview"}
+        description={`${todayLabel} · What is happening across the Camel Cement platform in the last ${days} days.`}
       >
         <RangeSelect />
       </PageHeader>
@@ -314,22 +354,34 @@ export default async function AdminOverviewPage({
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           label="New quote requests"
-          value={data.counts.quotes}
+          value={data.trends.quotes.value}
+          delta={data.trends.quotes.delta}
+          trend={data.trends.quotes.trend}
+          hint={trendHint}
           icon={ReceiptText}
         />
         <KpiCard
           label="Order requests"
-          value={data.counts.orders}
+          value={data.trends.orders.value}
+          delta={data.trends.orders.delta}
+          trend={data.trends.orders.trend}
+          hint={trendHint}
           icon={ShoppingCart}
         />
         <KpiCard
           label="New enquiries"
-          value={data.counts.enquiries}
+          value={data.trends.enquiries.value}
+          delta={data.trends.enquiries.delta}
+          trend={data.trends.enquiries.trend}
+          hint={trendHint}
           icon={Inbox}
         />
         <KpiCard
           label="Calculator sessions"
-          value={data.counts.calculators}
+          value={data.trends.calculators.value}
+          delta={data.trends.calculators.delta}
+          trend={data.trends.calculators.trend}
+          hint={trendHint}
           icon={Calculator}
         />
       </div>
