@@ -94,8 +94,8 @@ export function DealerDirectory({ dealers }: { dealers: Dealer[] }) {
   return (
     <div className="space-y-8">
       {/* Filters */}
-      <div className="grid gap-4 rounded-[18px] border border-concrete-200 bg-white p-6 shadow-[0_1px_2px_rgba(20,31,23,0.05)] sm:grid-cols-2 lg:grid-cols-4">
-        <div className="space-y-2">
+      <div className="grid gap-4 rounded-[18px] border border-concrete-200 bg-white p-4 shadow-[0_1px_2px_rgba(20,31,23,0.05)] sm:grid-cols-2 sm:p-6 lg:grid-cols-4">
+        <div className="space-y-2 sm:col-span-2 lg:col-span-1">
           <Label htmlFor="dealer-search">Search</Label>
           <div className="relative">
             <SearchIcon
@@ -155,6 +155,18 @@ export function DealerDirectory({ dealers }: { dealers: Dealer[] }) {
         </div>
       </div>
 
+      {/* Results count */}
+      {filteredDealers.length > 0 ? (
+        <p aria-live="polite" className="text-sm text-concrete-600">
+          Showing{" "}
+          <span className="font-bold text-concrete-950 tabular-nums">
+            {filteredDealers.length}
+          </span>{" "}
+          of {dealers.length}{" "}
+          {dealers.length === 1 ? "contact" : "contacts and dealers"}
+        </p>
+      ) : null}
+
       {/* Results */}
       {filteredDealers.length === 0 ? (
         <div
@@ -183,7 +195,7 @@ export function DealerDirectory({ dealers }: { dealers: Dealer[] }) {
           {filteredDealers.map((dealer) => (
             <li
               key={dealer.id}
-              className="flex flex-col gap-4 rounded-[18px] border border-concrete-200 bg-white p-6 shadow-[0_1px_2px_rgba(20,31,23,0.05)]"
+              className="flex flex-col gap-4 rounded-[18px] border border-concrete-200 bg-white p-5 shadow-[0_1px_2px_rgba(20,31,23,0.05)] sm:p-6"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-lg font-bold text-concrete-950">

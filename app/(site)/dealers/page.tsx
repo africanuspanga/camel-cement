@@ -54,7 +54,7 @@ export default async function DealersPage() {
             <iframe
               title="Camel Cement, Mbagala Industrial Area, Kilwa Road, Dar es Salaam"
               src="https://maps.google.com/maps?q=Camel%20Cement%20Mbagala%20Industrial%20Area%20Kilwa%20Road%20Dar%20es%20Salaam&z=13&output=embed"
-              className="h-[320px] w-full border-0 md:h-[420px]"
+              className="h-[240px] w-full border-0 sm:h-[320px] md:h-[420px]"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               allowFullScreen

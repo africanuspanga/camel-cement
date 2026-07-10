@@ -393,11 +393,11 @@ export default async function HomePage() {
             body="Search by region, district or current location to find authorised Camel Cement contacts and dealers serving your area."
             align="center"
           />
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex w-full max-w-sm flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-center">
             <Button
               asChild
               size="lg"
-              className="h-12 rounded-full bg-camel-green-700 px-6 font-bold text-white hover:bg-camel-green-800"
+              className="h-12 w-full rounded-full bg-camel-green-700 px-6 font-bold text-white hover:bg-camel-green-800 sm:w-auto"
             >
               <Link href="/dealers">
                 <MapPinIcon aria-hidden="true" />
@@ -408,7 +408,7 @@ export default async function HomePage() {
               asChild
               size="lg"
               variant="outline"
-              className="h-12 rounded-full border-camel-green-700 px-6 font-bold text-camel-green-700 hover:bg-camel-green-50"
+              className="h-12 w-full rounded-full border-camel-green-700 px-6 font-bold text-camel-green-700 hover:bg-camel-green-50 sm:w-auto"
             >
               <a href={site.phoneHref}>
                 <PhoneIcon aria-hidden="true" />
